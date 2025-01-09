@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: failing-workflow-
+spec:
+  entrypoint: main
+  onExit: exit-handler
+  templates:
+    # Main workflow entrypoint
+    - name: main
+      steps:
+        - - name: failing-task
+            template: fail
+
+    # Template to simulate a failing task
+    - name: fail
+      container:
+        image: busybox
+        command: [sh, -c]
+        args: [echo 'This task will fail'; exit 1]
+
+    - name: exit-handler
+      steps:
+        - - name: print-workflow-variables
+            template: fail-exit-handler
+            when: '{{workflow.status}} != Succeeded'
+
+    - name: fail-exit-handler
+      container:
+        image: busybox
+        command: [sh, -c]
+        args:
+          - |
+            echo 'Workflow Name: {{workflow.name}}'
+            echo 'Workflow Duration: {{workflow.duration}}'
+            echo 'Workflow Failures: {{workflow.failures}}'
+            echo 'Workflow Status: {{workflow.status}}'
+            echo 'Workflow Creation Timestamp: {{workflow.creationTimestamp}}'

@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: failing-workflow-
+spec:
+  entrypoint: main
+  templates:
+    # Main workflow entrypoint
+    - name: main
+      steps:
+        - - name: failing-task
+            template: fail
+        - - name: successful-task
+            template: success
+
+    # Template to simulate a failing task
+    - name: fail
+      container:
+        image: busybox
+        command: [sh, -c]
+        args: [echo 'This task will fail'; exit 1]
+
+    # Template to simulate a successful task (just for contrast)
+    - name: success
+      container:
+        image: busybox
+        command: [sh, -c]
+        args: [echo 'This task succeeded!']
